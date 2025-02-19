@@ -1,3 +1,4 @@
+#include <cassert>
 #include <iostream>
 using namespace std;
 
@@ -56,7 +57,7 @@ public:
     Fib(const string& str) {
         string copy = str;
         copy.erase(0, copy.find_first_not_of('0'));
-        fib_repr = copy;
+        fib_repr = copy.empty() ? "0" : copy; // Ensure "0" is assigned if empty
     }
 
     Fib(int num) : fib_repr(fromInt(num)) {}
@@ -64,7 +65,7 @@ public:
     Fib(const Fib& other) : fib_repr(other.fib_repr) {}
 
     friend ostream& operator<<(ostream& os, const Fib& f) {
-        return os << f.fib_repr;
+        return os << normalize(f.fib_repr);
     }
 
     Fib& operator=(const Fib& other) {
@@ -110,7 +111,7 @@ public:
                 result += '0';
             }
         }
-        return result;
+        return Fib(result);
     }
 
     Fib operator^(const Fib& other) {
@@ -133,19 +134,84 @@ public:
         }
         return Fib(result);
     }
+
+    Fib operator<<(int n) {
+        string num1 = this->fib_repr;
+        num1.append(n, '0');
+        return Fib(num1);
+    }
+
+    bool operator==(const Fib& other) const {
+        return normalize(this->fib_repr) == normalize(other.fib_repr);
+    }
+
+
+    bool operator<(const Fib & other) const {
+        return (toInt(this->fib_repr) < toInt(other.fib_repr));
+    }
+
+    bool operator<=(const Fib & other) const {
+        return (toInt(this->fib_repr) <= toInt(other.fib_repr));
+    }
+
+    bool operator!=(const Fib & other) const {
+        return (this->fib_repr != other.fib_repr);
+    }
+
+    bool operator>(const Fib & other) const {
+        return (toInt(this->fib_repr) > toInt(other.fib_repr));
+    }
+
+    bool operator>=(const Fib & other) const {
+        return (toInt(this->fib_repr) >= toInt(other.fib_repr));
+    }
+
+    size_t length() const {
+        return normalize(fib_repr).length();
+    }
+
+    Fib& operator<<=(int n) {
+        this->fib_repr.append(n, '0');
+        return *this;
+    }
 };
 
+Fib Zero() {
+    return Fib("0");
+};
+
+
+Fib One() {
+    return Fib("1");
+};
+
+
 int main() {
-    Fib f1("11");  // 1001 = F_6 + F_3 = 8 + 2 = 10
-    Fib f2("110010");    // 10 = F_3 = 2
+    Fib f;
 
-    Fib f3 = Fib("1001") ^ Fib("1010");
+    assert(f == Zero());
+    assert(Fib(f) == Zero());
+    assert(Zero() < One());
+    assert(Fib("11") == Fib("100"));
+    assert((Fib("1001") + Fib("10")) == Fib("1011"));
+    assert((Fib("1001") & Fib("1100")) == Zero()); // 1100 == 10000
+    assert((Fib("1100") | Fib("11")) == Fib("10100")); // 1100 == 10000, 11 == 100
+    assert((Fib("1001") ^ Fib("1010")) == Fib("11"));
+    assert((Fib("101") << 3) == Fib("101000"));
 
-    std::cout << "f1: " << f1 << std::endl; // 1001
-    std::cout << "f2: " << f2 << std::endl; // 10
-    std::cout << "f3: " << f3 << std::endl; // Expected output: "10010"
+    f = One();
+    f <<= 3;
+    assert(f == Fib("1000"));
 
+    f = One();
+    assert(f + Fib("1") == Fib("10"));
+    assert(f == One());
 
+    Fib f1("101");
+    Fib f2 = Fib("101");
+    assert(f1 == f2);
 
-    return 0;
+    assert(Fib("11").length() == 3); // 11 == 100
+
+    std::cout << Fib("11") << std::endl; // wyświetla 100
 }
